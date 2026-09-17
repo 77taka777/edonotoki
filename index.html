@@ -23,6 +23,7 @@
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{
+  word-break:auto-phrase;line-break:strict;
   font-family:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;
   color:var(--sumi);
   background:var(--ai-deep);
@@ -44,8 +45,11 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--hi);outline-off
 @media (min-width:900px){
   .sheet{max-width:960px}
   .explore{display:grid;grid-template-columns:1fr 1fr;gap:0 28px;align-items:start}
-  .explore .lead{grid-column:1/-1}
-  .explore .dial-wrap{grid-row:2/4}
+  .explore .lead{grid-column:1/-1;margin-bottom:22px}
+  .explore .dial-wrap{grid-row:2/4;align-self:center;max-width:none;margin:0}
+  .explore .readout{margin-top:0}
+  .about p,.about .count-table{max-width:34em}
+  .quiz #quizBody{max-width:620px;margin:0 auto}
 }
 
 /* ── 題字 ─────────────────────────── */
@@ -60,13 +64,14 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--hi);outline-off
 .masthead svg.seigaiha{position:absolute;inset:0;width:100%;height:100%;opacity:.35;pointer-events:none}
 .masthead .stamp{
   position:relative;
-  writing-mode:vertical-rl;
-  font-weight:800;font-size:1.05rem;letter-spacing:.2em;
+  display:flex;flex-direction:column;align-items:center;
+  font-weight:800;font-size:1.05rem;letter-spacing:.02em;
   color:#fff;background:var(--shu);
-  padding:10px 6px;border-radius:3px;
+  padding:10px 6px;border-radius:3px;white-space:nowrap;
   box-shadow:inset 0 0 0 2px rgba(255,255,255,.55),inset 0 0 0 3px var(--shu);
-  transform:rotate(-3deg);flex:none;
+  transform:rotate(-3deg);flex:none;line-height:1.3;
 }
+.masthead .stamp i{font-style:normal}
 .masthead .titles{position:relative}
 .masthead h1{margin:0;font-size:2.4rem;line-height:1.1;font-weight:800;letter-spacing:.12em}
 .masthead h1 rt{font-size:.7rem;letter-spacing:.2em;font-weight:500}
@@ -88,7 +93,8 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--hi);outline-off
 .lead{margin:2px 0 18px;padding:14px 16px 12px;border-top:3px double var(--shu);border-bottom:1px solid var(--sumi);background:var(--washi-2);position:relative}
 .lead:before{content:"";position:absolute;left:0;top:6px;bottom:6px;width:4px;background:var(--shu)}
 .lead-h{margin:0 0 8px;font-size:1.45rem;font-weight:800;line-height:1.45;letter-spacing:.04em}
-.lead-b{margin:0;font-size:.92rem;line-height:1.85;color:#3d3630;max-width:36em}
+.lead-h span{display:inline-block}
+.lead-b{margin:0;font-size:.95rem;line-height:1.9;color:#3d3630;max-width:30em}
 
 /* ── 文字盤 ───────────────────────── */
 .dial-wrap{position:relative;margin:4px auto 10px;max-width:400px}
@@ -242,7 +248,7 @@ footer{padding:14px 18px 30px;font-size:.78rem;color:var(--hai);letter-spacing:.
     </defs>
     <rect width="100%" height="100%" fill="url(#sg)"/>
   </svg>
-  <div class="stamp">時之鐘</div>
+  <div class="stamp"><i>時</i><i>之</i><i>鐘</i></div>
   <div class="titles">
     <h1><ruby>江戸の刻<rt>えどのとき</rt></ruby></h1>
     <p class="sub">不定時法 疑似体験</p>
@@ -258,8 +264,8 @@ footer{padding:14px 18px 30px;font-size:.78rem;color:var(--hai);letter-spacing:.
 <!-- ═══ 体験 ═══ -->
 <section class="panel explore active" id="explore" role="tabpanel">
   <div class="lead">
-    <p class="lead-h">太陽が出ている長さで、<br>一分一秒の長さが変わった。</p>
-    <p class="lead-b">日の出前の「明け六つ」から日の入後の「暮れ六つ」までを六つに割った一区切りが一刻。夜も同じく六つ。だから夏の昼は一刻がゆったり長く、冬の昼はせかせか短い。江戸の人は時計に太陽を合わせず、太陽そのものを時計にしていた。</p>
+    <p class="lead-h"><span>太陽が出ている長さで、</span><span>一分一秒の長さが変わった。</span></p>
+    <p class="lead-b">日の出前の「明け六つ」から日の入後の「暮れ六つ」までを六等分した一区切りが一刻。夜も同じく六等分。だから夏の昼は一刻がゆったり長く、冬の昼はせかせか短い。江戸の人は時計に太陽を合わせるのではなく、太陽そのものを時計にしていた。</p>
   </div>
   <div class="dial-wrap">
     <svg id="dial" viewBox="0 0 340 340" role="img" aria-label="不定時法の文字盤"></svg>
@@ -380,7 +386,7 @@ function locate(E,t){
 const bellName=b=>b.count===6?(b.period==='昼'?'明け六つ':'暮れ六つ'):KAN[b.count]+'ツ';
 const fullName=loc=>(loc.bell.count===6?bellName(loc.bell):loc.bell.period+KAN[loc.bell.count]+'ツ')+(loc.half?'半':'');
 function fmt(t){t=Math.round(mod(t));const h=Math.floor(t/60),m=t%60;return h+':'+String(m).padStart(2,'0')}
-function dur(m){m=Math.round(m);return Math.floor(m/60)+'時間'+String(m%60).padStart(2,'0')+'分'}
+function dur(m){m=Math.round(m);const h=Math.floor(m/60);return h?h+'時間'+String(m%60).padStart(2,'0')+'分':m+'分'}
 function dateStr(doy){const d=new Date(YEAR,0,doy);return (d.getMonth()+1)+'月'+d.getDate()+'日'}
 function todayDoy(){const n=new Date();return Math.floor((n-new Date(n.getFullYear(),0,1))/86400000)+1}
 function sekkiFor(doy){let b=SEKKI[0],bd=999;for(const s of SEKKI){const d=Math.min(Math.abs(s.d-doy),365-Math.abs(s.d-doy));if(d<bd){bd=d;b=s}}return b}
@@ -491,11 +497,15 @@ function drawShown(){
 }
 
 /* ═══════════ 鐘の音 ═══════════
-   OfflineAudioContextで梵鐘を合成 → WAV → <audio>で再生。
-   HTML5メディア再生扱いになるのでiOSのサイレントスイッチでも鳴る */
-const BELL_SR=22050, bellCache={}; let bellEl=null, silentUrl=null, ringing=false;
+   梵鐘をOfflineAudioContextで合成 → WAV → <audio>で再生。
+   HTML5メディア再生扱いなのでiOSのサイレントスイッチでも鳴る。
+   合成や再生が失敗した端末ではWeb Audioの直接再生に自動で切り替える */
+const bellCache={}; let bellEl=null, ringing=false, liveCtx=null, unlocked=false;
+const SILENT='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
 if(navigator.audioSession){try{navigator.audioSession.type='playback'}catch(e){}}
+
 function strokeTimes(count){const a=[];for(let i=0;i<3;i++)a.push({at:i*.6,vol:.5});for(let i=0;i<count;i++)a.push({at:2.3+i*1.5,vol:1});return a}
+function bellLen(count){return 2.3+count*1.5+4}
 function strikeInto(ctx,dest,when,vol){
   const base=98;
   [[1,1,5],[2.03,.55,3.2],[2.42,.38,2.4],[3.76,.22,1.5],[5.1,.11,.9],[.5,.3,5.5]].forEach(([r,a,d])=>{
@@ -516,33 +526,65 @@ function wav(buf){
   for(let i=0;i<n;i++){const x=Math.max(-1,Math.min(1,d[i]));v.setInt16(44+i*2,x<0?x*32768:x*32767,true)}
   return ab;
 }
-async function renderBell(count){
-  const OAC=window.OfflineAudioContext||window.webkitOfflineAudioContext;
-  const len=count?2.3+count*1.5+5.5:.2, ctx=new OAC(1,Math.ceil(len*BELL_SR),BELL_SR);
-  const master=ctx.createGain();master.gain.value=.8;master.connect(ctx.destination);
-  if(count)strokeTimes(count).forEach(st=>strikeInto(ctx,master,st.at,st.vol));
-  const buf=await ctx.startRendering();
-  return URL.createObjectURL(new Blob([wav(buf)],{type:'audio/wav'}));
+function renderBell(count){ // iOSは44100以外を拒む場合があるので44100固定＋旧APIにも対応
+  return new Promise((res,rej)=>{
+    try{
+      const OAC=window.OfflineAudioContext||window.webkitOfflineAudioContext;
+      if(!OAC)return rej('no OfflineAudioContext');
+      const SR=44100, ctx=new OAC(1,Math.ceil(bellLen(count)*SR),SR);
+      const master=ctx.createGain();master.gain.value=.8;master.connect(ctx.destination);
+      strokeTimes(count).forEach(st=>strikeInto(ctx,master,st.at,st.vol));
+      const done=buf=>{try{res(URL.createObjectURL(new Blob([wav(buf)],{type:'audio/wav'})))}catch(e){rej(e)}};
+      ctx.oncomplete=e=>done(e.renderedBuffer);
+      const pr=ctx.startRendering();
+      if(pr&&pr.then)pr.then(done,rej);
+    }catch(e){rej(e)}
+  });
 }
 async function preRender(){
-  try{silentUrl=await renderBell(0);for(const c of [9,8,7,6,5,4])bellCache[c]=await renderBell(c)}catch(e){console.warn('bell render failed',e)}
+  for(const c of [9,8,7,6,5,4]){
+    try{bellCache[c]=await renderBell(c)}catch(e){console.warn('bell render failed',e);return}
+  }
 }
 function getBellEl(){
-  if(!bellEl){bellEl=document.createElement('audio');bellEl.setAttribute('playsinline','');bellEl.setAttribute('webkit-playsinline','');bellEl.preload='auto';document.body.appendChild(bellEl)}
+  if(!bellEl){
+    bellEl=document.createElement('audio');
+    bellEl.setAttribute('playsinline','');bellEl.setAttribute('webkit-playsinline','');
+    bellEl.preload='auto';bellEl.volume=1;bellEl.src=SILENT;
+    bellEl.style.display='none';document.body.appendChild(bellEl);
+  }
   return bellEl;
 }
-function ensureAudio(){ /* ユーザー操作の中で一度鳴らして再生を解禁 */
-  const el=getBellEl(); if(!silentUrl)return;
-  el.src=silentUrl; const p=el.play(); if(p&&p.catch)p.catch(()=>{});
+function ensureAudio(){ // 最初のタップで無音を一度再生し、以後の再生を解禁しておく
+  const el=getBellEl();
+  if(!unlocked){unlocked=true;el.src=SILENT;const p=el.play();if(p&&p.catch)p.catch(()=>{unlocked=false})}
+  if(liveCtx&&liveCtx.state==='suspended')liveCtx.resume();
 }
-function ringBell(count,onStroke,onDone){
-  const el=getBellEl(), url=bellCache[count];
-  if(!url){onDone&&onDone();return}
-  ringing=true; el.src=url; el.currentTime=0;
-  const p=el.play(); if(p&&p.catch)p.catch(()=>{});
+function playLive(count){ // 合成WAVが使えない端末向けの保険（消音スイッチには従う）
+  try{
+    if(!liveCtx)liveCtx=new (window.AudioContext||window.webkitAudioContext)();
+    if(liveCtx.state==='suspended')liveCtx.resume();
+    const master=liveCtx.createGain();master.gain.value=.8;master.connect(liveCtx.destination);
+    const t0=liveCtx.currentTime+.08;
+    strokeTimes(count).forEach(st=>strikeInto(liveCtx,master,t0+st.at,st.vol));
+  }catch(e){console.warn('live bell failed',e)}
+}
+function scheduleStrokes(count,onStroke,onDone){
+  ringing=true;
   strokeTimes(count).forEach((st,i)=>setTimeout(()=>onStroke&&onStroke(i),st.at*1000+60));
   setTimeout(()=>{ringing=false;onDone&&onDone()},(2.3+count*1.5+1.2)*1000);
 }
+function ringBell(count,onStroke,onDone){
+  const url=bellCache[count];
+  if(!url){playLive(count);scheduleStrokes(count,onStroke,onDone);if(!Object.keys(bellCache).length)preRender();return}
+  const el=getBellEl();
+  el.src=url;el.currentTime=0;
+  const p=el.play();
+  if(p&&p.catch)p.catch(()=>playLive(count));
+  scheduleStrokes(count,onStroke,onDone);
+}
+addEventListener('pointerdown',ensureAudio,{once:true});
+addEventListener('touchend',ensureAudio,{once:true});
 preRender();
 function renderStrokes(count,lit=-1){
   const box=$('strokes');
