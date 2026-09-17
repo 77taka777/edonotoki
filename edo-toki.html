@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>江戸の刻 ― 不定時法 疑似体験</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --washi:#efe4c9;
+  --washi-2:#f7efdc;
+  --sumi:#241f1c;
+  --ai:#1b2d4f;
+  --ai-deep:#0f1b33;
+  --shu:#b8322a;
+  --kin:#b9924a;
+  --hai:#7d7466;
+  --hi:#f2c14e;
+  --line:rgba(36,31,28,.28);
+  font-size:16px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;
+  color:var(--sumi);
+  background:var(--ai-deep);
+  line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--hi);outline-offset:2px}
+
+/* ── 紙面 ─────────────────────────── */
+.sheet{
+  max-width:560px;margin:0 auto;min-height:100dvh;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E"),
+    var(--washi);
+  box-shadow:0 0 0 1px rgba(0,0,0,.4),0 0 60px rgba(0,0,0,.6);
+  position:relative;
+}
+@media (min-width:900px){
+  .sheet{max-width:960px}
+  .explore{display:grid;grid-template-columns:1fr 1fr;gap:0 28px;align-items:start}
+  .explore .lead{grid-column:1/-1}
+  .explore .dial-wrap{grid-row:2/4}
+}
+
+/* ── 題字 ─────────────────────────── */
+.masthead{
+  background:var(--ai);
+  color:var(--washi);
+  padding:22px 20px 18px;
+  display:flex;align-items:flex-end;gap:18px;
+  position:relative;overflow:hidden;
+  border-bottom:6px double var(--kin);
+}
+.masthead svg.seigaiha{position:absolute;inset:0;width:100%;height:100%;opacity:.35;pointer-events:none}
+.masthead .stamp{
+  position:relative;
+  writing-mode:vertical-rl;
+  font-weight:800;font-size:1.05rem;letter-spacing:.2em;
+  color:#fff;background:var(--shu);
+  padding:10px 6px;border-radius:3px;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.55),inset 0 0 0 3px var(--shu);
+  transform:rotate(-3deg);flex:none;
+}
+.masthead .titles{position:relative}
+.masthead h1{margin:0;font-size:2.4rem;line-height:1.1;font-weight:800;letter-spacing:.12em}
+.masthead h1 rt{font-size:.7rem;letter-spacing:.2em;font-weight:500}
+.masthead .sub{margin:6px 0 0;font-size:.9rem;letter-spacing:.24em;color:var(--kin)}
+
+/* ── 目次（タブ） ─────────────────── */
+.tabs{display:flex;border-bottom:1px solid var(--line);background:var(--washi-2)}
+.tabs button{
+  flex:1;background:none;border:0;padding:12px 4px 10px;
+  font-size:1.05rem;letter-spacing:.2em;font-weight:700;color:var(--hai);
+  border-bottom:4px solid transparent;
+}
+.tabs button[aria-selected="true"]{color:var(--sumi);border-bottom-color:var(--shu)}
+.panel{display:none;padding:18px 18px 40px}
+.panel.active{display:block}
+@media (min-width:900px){.panel.active.explore{display:grid}}
+
+/* ── 前口上 ───────────────────────── */
+.lead{margin:2px 0 18px;padding:14px 16px 12px;border-top:3px double var(--shu);border-bottom:1px solid var(--sumi);background:var(--washi-2);position:relative}
+.lead:before{content:"";position:absolute;left:0;top:6px;bottom:6px;width:4px;background:var(--shu)}
+.lead-h{margin:0 0 8px;font-size:1.45rem;font-weight:800;line-height:1.45;letter-spacing:.04em}
+.lead-b{margin:0;font-size:.92rem;line-height:1.85;color:#3d3630;max-width:36em}
+
+/* ── 文字盤 ───────────────────────── */
+.dial-wrap{position:relative;margin:4px auto 10px;max-width:400px}
+.dial-wrap svg{width:100%;height:auto;display:block;filter:drop-shadow(0 8px 18px rgba(0,0,0,.25))}
+.dial-wrap .kikuza{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none}
+
+/* ── 表示 ─────────────────────────── */
+.readout{
+  border-top:1px solid var(--sumi);border-bottom:1px solid var(--sumi);
+  padding:14px 4px 10px;margin:6px 0 14px;
+  position:relative;
+}
+.readout:before,.readout:after{content:"";position:absolute;left:0;right:0;height:1px;background:var(--kin)}
+.readout:before{top:3px}.readout:after{bottom:3px}
+.now-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.edo-name{font-size:2.5rem;font-weight:800;letter-spacing:.06em;line-height:1.15}
+.edo-name small{display:block;font-size:.95rem;font-weight:500;letter-spacing:.2em;color:var(--hai)}
+.modern{font-size:1.4rem;font-weight:700;text-align:right;line-height:1.3}
+.modern small{display:block;font-size:.85rem;font-weight:500;color:var(--hai);letter-spacing:.1em}
+.koku{display:grid;grid-template-columns:1fr 1fr;margin:14px 0 4px;border:1.5px solid var(--sumi);border-radius:8px;overflow:hidden;box-shadow:0 3px 0 var(--sumi)}
+.koku-col{padding:12px 14px 14px;position:relative}
+.koku-col.day{background:linear-gradient(180deg,#f9efcc,#f1e2b0);color:var(--sumi)}
+.koku-col.night{background:linear-gradient(180deg,#26406f,var(--ai-deep));color:var(--washi)}
+.k-head{position:absolute;top:8px;right:10px;font-size:2.6rem;font-weight:800;line-height:1;opacity:.14}
+.k-row{display:flex;flex-direction:column;line-height:1.2;position:relative}
+.k-row+.k-row{margin-top:10px;padding-top:10px;border-top:1px solid currentColor;border-image:linear-gradient(90deg,currentColor,transparent) 1}
+.k-row span{font-size:.78rem;letter-spacing:.18em;opacity:.75}
+.k-row strong{font-size:1.5rem;font-weight:800;letter-spacing:.02em;margin-top:2px}
+.k-row.big strong{font-size:2.3rem;color:var(--shu)}
+.koku-col.night .k-row.big strong{color:var(--hi)}
+.facts{margin:12px 0 0;padding:0;list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;font-size:.92rem}
+.facts li{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dotted var(--line);padding:3px 0}
+.facts li span:first-child{color:var(--hai);letter-spacing:.06em}
+.facts li strong{font-weight:700;white-space:nowrap}
+.facts li.wide{grid-column:1/-1}
+.facts li.wide strong{color:var(--shu)}
+.facts li.x strong{color:var(--ai)}
+
+/* ── 操作 ─────────────────────────── */
+.controls h2{font-size:.9rem;letter-spacing:.3em;font-weight:700;color:var(--hai);margin:14px 0 8px;display:flex;align-items:center;gap:10px}
+.controls h2:after{content:"";flex:1;height:1px;background:var(--line)}
+.seasons{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.seasons button{
+  background:var(--washi-2);border:1px solid var(--sumi);border-radius:6px;padding:10px 4px 8px;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  font-size:1.05rem;font-weight:700;letter-spacing:.14em;
+  box-shadow:0 2px 0 var(--sumi);
+}
+.seasons button .btn{
+  width:34px;height:34px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#e8655a,var(--shu) 55%,#7a1d17);
+  box-shadow:0 3px 0 #4d120e,0 0 0 4px var(--washi),0 0 0 5px var(--sumi);
+  transition:transform .12s,box-shadow .12s;
+}
+.seasons button[aria-pressed="true"]{background:var(--sumi);color:var(--washi)}
+.seasons button[aria-pressed="true"] .btn{transform:translateY(3px);box-shadow:0 0 0 #4d120e,0 0 0 4px var(--sumi),0 0 0 5px var(--kin)}
+.months{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:10px}
+.months button{
+  background:transparent;border:1px solid var(--line);border-radius:4px;padding:6px 0;
+  font-size:.95rem;letter-spacing:.05em;
+}
+.months button[aria-pressed="true"]{background:var(--ai);color:var(--washi);border-color:var(--ai)}
+
+.time-row{display:flex;align-items:center;gap:12px}
+.time-row input[type=range]{flex:1}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;height:34px;background:transparent;margin:0;
+}
+input[type=range]{--d0:25%;--d1:75%}
+input[type=range]::-webkit-slider-runnable-track{height:3px;background:linear-gradient(90deg,var(--ai) 0 var(--d0),var(--hi) var(--d0) var(--d1),var(--ai) var(--d1));border-radius:2px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:30px;height:30px;border-radius:50%;background:var(--shu);border:3px solid var(--washi);box-shadow:0 0 0 2px var(--sumi);margin-top:-13px}
+input[type=range]::-moz-range-track{height:3px;background:linear-gradient(90deg,var(--ai) 0 var(--d0),var(--hi) var(--d0) var(--d1),var(--ai) var(--d1));border-radius:2px}
+input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:var(--shu);border:3px solid var(--washi);box-shadow:0 0 0 2px var(--sumi)}
+input[type=range]:disabled{opacity:.35}
+.toggle{
+  border:1px solid var(--sumi);background:var(--washi-2);border-radius:999px;padding:6px 14px;
+  font-weight:700;letter-spacing:.1em;white-space:nowrap;
+}
+.toggle[aria-pressed="true"]{background:var(--shu);color:#fff;border-color:var(--shu)}
+
+.bell-row{margin-top:14px;display:flex;align-items:center;gap:14px}
+.bell-btn{
+  background:var(--ai);color:var(--washi);border:0;border-radius:6px;padding:12px 18px;
+  font-size:1.05rem;font-weight:700;letter-spacing:.16em;white-space:nowrap;
+  box-shadow:0 3px 0 var(--ai-deep);
+}
+.bell-btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ai-deep)}
+.bell-btn:disabled{opacity:.6;cursor:default}
+.strokes{display:flex;gap:5px;flex-wrap:wrap;align-items:center;font-size:.8rem;color:var(--hai)}
+.strokes i{width:11px;height:11px;border-radius:50%;border:1.5px solid var(--sumi);display:inline-block;transition:background .1s}
+.strokes i.sute{border-style:dashed}
+.strokes i.on{background:var(--shu);border-color:var(--shu);box-shadow:0 0 0 3px rgba(184,50,42,.25)}
+.strokes b{width:1px;height:14px;background:var(--line);margin:0 4px}
+
+/* ── 鐘当て ───────────────────────── */
+.quiz .progress{display:flex;justify-content:space-between;font-size:.95rem;letter-spacing:.15em;color:var(--hai);margin-bottom:10px}
+.qcard{
+  border-radius:10px;padding:22px 18px 18px;
+  background:linear-gradient(170deg,#f8ebc0,#e6cf8e);color:var(--sumi);
+  border:1px solid var(--sumi);box-shadow:inset 0 0 0 4px var(--washi),inset 0 0 0 5px var(--kin);
+  transition:background .5s;
+}
+.qcard.night{background:linear-gradient(170deg,#25396a,var(--ai-deep));color:var(--washi)}
+.qcard .sekki{font-size:.9rem;letter-spacing:.3em;opacity:.8}
+.qcard .qtext{font-size:1.35rem;font-weight:700;line-height:1.55;margin:6px 0 4px}
+.qcard .qtext em{font-style:normal;font-size:1.9rem;letter-spacing:.06em}
+.qcard .listen{margin-top:8px;background:transparent;border:1px solid currentColor;border-radius:999px;padding:5px 14px;font-size:.9rem;letter-spacing:.12em}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0 0}
+.choices button{
+  background:var(--washi-2);border:1px solid var(--sumi);border-radius:6px;padding:16px 8px;
+  font-size:1.3rem;font-weight:700;letter-spacing:.06em;box-shadow:0 2px 0 var(--sumi);
+}
+.choices button.ok{background:var(--shu);color:#fff;border-color:var(--shu);box-shadow:0 2px 0 #7a1d17}
+.choices button.ng{opacity:.45}
+.choices button:disabled{cursor:default}
+.feedback{margin-top:14px;padding:12px 14px;border-left:4px solid var(--shu);background:var(--washi-2);font-size:.95rem;display:none}
+.feedback.show{display:block}
+.feedback .verdict{font-size:1.3rem;font-weight:800;letter-spacing:.2em;display:block;margin-bottom:4px}
+.next{margin-top:14px;width:100%;background:var(--sumi);color:var(--washi);border:0;border-radius:6px;padding:14px;font-size:1.05rem;font-weight:700;letter-spacing:.2em}
+.result{text-align:center;padding:30px 10px}
+.result .score{font-size:3.2rem;font-weight:800;line-height:1;letter-spacing:.05em}
+.result .score small{font-size:1rem;letter-spacing:.2em;color:var(--hai);display:block;margin-top:6px}
+.result .title{margin:20px auto 0;display:inline-block;padding:10px 22px;border:2px solid var(--shu);color:var(--shu);font-size:1.4rem;font-weight:800;letter-spacing:.2em;transform:rotate(-2deg)}
+.result p{margin:18px 0 0;font-size:.95rem}
+
+/* ── 解説 ─────────────────────────── */
+.about h3{font-size:1.15rem;letter-spacing:.15em;margin:22px 0 6px;padding-left:12px;border-left:4px solid var(--shu)}
+.about h3:first-child{margin-top:4px}
+.about p{margin:0 0 8px;font-size:.98rem;max-width:36em}
+.about .count-table{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin:8px 0 12px;text-align:center;max-width:36em}
+.about .count-table div{border:1px solid var(--line);padding:6px 0;font-size:.85rem;line-height:1.4}
+.about .count-table div b{display:block;font-size:1.3rem}
+footer{padding:14px 18px 30px;font-size:.78rem;color:var(--hai);letter-spacing:.05em;border-top:1px solid var(--line)}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+<header class="masthead">
+  <svg class="seigaiha" aria-hidden="true">
+    <defs>
+      <pattern id="sg" width="60" height="30" patternUnits="userSpaceOnUse">
+        <g fill="none" stroke="#c8a35a" stroke-width="1">
+          <circle cx="30" cy="30" r="29"/><circle cx="30" cy="30" r="22"/><circle cx="30" cy="30" r="15"/><circle cx="30" cy="30" r="8"/>
+          <circle cx="0" cy="0" r="29"/><circle cx="0" cy="0" r="22"/><circle cx="0" cy="0" r="15"/><circle cx="0" cy="0" r="8"/>
+          <circle cx="60" cy="0" r="29"/><circle cx="60" cy="0" r="22"/><circle cx="60" cy="0" r="15"/><circle cx="60" cy="0" r="8"/>
+        </g>
+      </pattern>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#sg)"/>
+  </svg>
+  <div class="stamp">時之鐘</div>
+  <div class="titles">
+    <h1><ruby>江戸の刻<rt>えどのとき</rt></ruby></h1>
+    <p class="sub">不定時法 疑似体験</p>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist">
+  <button role="tab" aria-selected="true" data-tab="explore">体験</button>
+  <button role="tab" aria-selected="false" data-tab="quiz">鐘当て</button>
+  <button role="tab" aria-selected="false" data-tab="about">解説</button>
+</nav>
+
+<!-- ═══ 体験 ═══ -->
+<section class="panel explore active" id="explore" role="tabpanel">
+  <div class="lead">
+    <p class="lead-h">太陽が出ている長さで、<br>一分一秒の長さが変わった。</p>
+    <p class="lead-b">日の出前の「明け六つ」から日の入後の「暮れ六つ」までを六つに割った一区切りが一刻。夜も同じく六つ。だから夏の昼は一刻がゆったり長く、冬の昼はせかせか短い。江戸の人は時計に太陽を合わせず、太陽そのものを時計にしていた。</p>
+  </div>
+  <div class="dial-wrap">
+    <svg id="dial" viewBox="0 0 340 340" role="img" aria-label="不定時法の文字盤"></svg>
+  </div>
+
+  <div class="readout">
+    <div class="now-row">
+      <div class="edo-name"><span id="edoName">―</span><small id="edoSub">―</small></div>
+      <div class="modern"><span id="modernTime">--:--</span><small id="modernDate">―</small></div>
+    </div>
+    <div class="koku">
+      <div class="koku-col day">
+        <div class="k-head">昼</div>
+        <div class="k-row"><span>一刻</span><strong id="fDay">―</strong></div>
+        <div class="k-row big"><span>一分は現代の</span><strong id="fDayX">―</strong></div>
+      </div>
+      <div class="koku-col night">
+        <div class="k-head">夜</div>
+        <div class="k-row"><span>一刻</span><strong id="fNight">―</strong></div>
+        <div class="k-row big"><span>一分は現代の</span><strong id="fNightX">―</strong></div>
+      </div>
+    </div>
+    <ul class="facts">
+      <li><span>日の出</span><strong id="fRise">―</strong></li>
+      <li><span>日の入</span><strong id="fSet">―</strong></li>
+      <li class="wide"><span>次の鐘</span><strong id="fNext">―</strong></li>
+    </ul>
+  </div>
+
+  <div class="controls">
+    <h2>季節</h2>
+    <div class="seasons" id="seasons">
+      <button data-doy="79"><span class="btn"></span>春分</button>
+      <button data-doy="172"><span class="btn"></span>夏至</button>
+      <button data-doy="266"><span class="btn"></span>秋分</button>
+      <button data-doy="356"><span class="btn"></span>冬至</button>
+    </div>
+    <div class="months" id="months"></div>
+
+    <h2>時刻</h2>
+    <div class="time-row">
+      <input type="range" id="timeRange" min="0" max="1439" step="1" value="720" aria-label="現代の時刻">
+      <button class="toggle" id="liveBtn" aria-pressed="false">今の刻</button>
+    </div>
+
+    <div class="bell-row">
+      <button class="bell-btn" id="bellBtn">鐘を撞く</button>
+      <div class="strokes" id="strokes"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 鐘当て ═══ -->
+<section class="panel quiz" id="quiz" role="tabpanel">
+  <div id="quizBody"></div>
+</section>
+
+<!-- ═══ 解説 ═══ -->
+<section class="panel about" id="about" role="tabpanel">
+  <h3>不定時法とは</h3>
+  <p>江戸時代の一日は、日の出前の「明け六つ」から日の入後の「暮れ六つ」までを昼、その残りを夜として、それぞれを六等分した。一区切りが「一刻」。だから昼の一刻と夜の一刻は長さが違い、しかも季節ごとに毎日少しずつ変わる。夏至の昼の一刻は二時間半近く、冬至なら一時間半ほどしかない。</p>
+  <p>時計を持たない庶民は、お寺や時の鐘が撞く鐘の数で刻を知った。明け六つ・暮れ六つの基準は「日の出の約35分前・日の入の約35分後」。空が白む、暮れ落ちるころに合わせてある。</p>
+
+  <h3>数え方は九から四へ</h3>
+  <p>鐘の数は九ツから始まり、八・七・六・五・四と減っていき、また九ツに戻る。九は陽の極まる数で、九・十八・二十七・三十六・四十五・五十四の一の位を取った、という説が有力。一ツ二ツ三ツが無いのはこのため。</p>
+  <div class="count-table">
+    <div><b>九</b>正午／深夜</div><div><b>八</b>おやつ</div><div><b>七</b>七ツ立ち</div><div><b>六</b>明け・暮れ</div><div><b>五</b></div><div><b>四</b></div>
+  </div>
+  <p>「おやつ」は昼八ツに軽食をとった名残。旅立ちを「七ツ立ち」と言うのは夜七ツ、夜明け前のこと。</p>
+
+  <h3>鐘の撞き方</h3>
+  <p>本鐘の前に「捨て鐘」を三つ鳴らす。周りに「今から時を知らせる」と注意を促す合図で、これを聞いて数え始める。落語『時そば』は、代金を数えながら「今何刻だい」と挟んで一文ごまかす噺。九ツどきに成功した男を真似た翌日の男が四ツどきにやって失敗する、あの間抜けさも不定時法があってこそ。</p>
+
+  <h3>この文字盤の読み方</h3>
+  <p>外周の数字は現代の24時間。内側の十二支が刻の名前、その内の漢数字が鐘の数。昼と夜の境目が季節で膨らんだり縮んだりするのを、季節ボタンで確かめてほしい。日の出・日の入は江戸（東京）の緯度経度で計算している。</p>
+</section>
+
+<footer>参考：内田正男『暦と時の事典』（雄山閣）。日の出入は東京（北緯35.69・東経139.75）のおおよその計算値。</footer>
+</div>
+
+<script>
+/* ═══════════ 計算 ═══════════ */
+const YEAR=2026, LAT=35.69, LON=139.75, TZ=9;
+const COUNTS=[6,5,4,9,8,7];
+const DAYB=['卯','辰','巳','午','未','申'], NIGHTB=['酉','戌','亥','子','丑','寅'];
+const KAN={9:'九',8:'八',7:'七',6:'六',5:'五',4:'四'};
+const SEKKI=[{n:'立春',d:35},{n:'春分',d:79},{n:'立夏',d:126},{n:'夏至',d:172},{n:'立秋',d:220},{n:'秋分',d:266},{n:'立冬',d:312},{n:'冬至',d:356}];
+const MONTH_DOY=[15,46,74,105,135,166,196,227,258,288,319,349];
+const KMONTH=['一','二','三','四','五','六','七','八','九','十','十一','十二'];
+
+const mod=t=>((t%1440)+1440)%1440;
+const circ=(a,b)=>{const d=Math.abs(mod(a)-mod(b));return Math.min(d,1440-d)};
+
+function sunTimes(doy){
+  const g=2*Math.PI/365*(doy-1+0.5);
+  const eq=229.18*(0.000075+0.001868*Math.cos(g)-0.032077*Math.sin(g)-0.014615*Math.cos(2*g)-0.040849*Math.sin(2*g));
+  const dec=0.006918-0.399912*Math.cos(g)+0.070257*Math.sin(g)-0.006758*Math.cos(2*g)+0.000907*Math.sin(2*g)-0.002697*Math.cos(3*g)+0.00148*Math.sin(3*g);
+  const lat=LAT*Math.PI/180, zen=90.833*Math.PI/180;
+  const cosHA=Math.cos(zen)/(Math.cos(lat)*Math.cos(dec))-Math.tan(lat)*Math.tan(dec);
+  const ha=Math.acos(Math.max(-1,Math.min(1,cosHA)))*180/Math.PI;
+  return {rise:720-4*(LON+ha)-eq+TZ*60, set:720-4*(LON-ha)-eq+TZ*60};
+}
+function edo(doy){
+  const s=sunTimes(doy);
+  const ake=s.rise-35, kure=s.set+35;
+  const dayLen=kure-ake, nightLen=1440-dayLen, kDay=dayLen/6, kNight=nightLen/6;
+  const bells=[];
+  for(let k=0;k<6;k++) bells.push({t:mod(ake+k*kDay),count:COUNTS[k],period:'昼',branch:DAYB[k],len:kDay});
+  for(let k=0;k<6;k++) bells.push({t:mod(kure+k*kNight),count:COUNTS[k],period:'夜',branch:NIGHTB[k],len:kNight});
+  return {doy,rise:s.rise,set:s.set,ake,kure,dayLen,nightLen,kDay,kNight,bells};
+}
+function locate(E,t){
+  let idx=0,best=1e9;
+  E.bells.forEach((b,i)=>{const el=mod(t-b.t);if(el<best){best=el;idx=i}});
+  const b=E.bells[idx], frac=best/b.len, half=frac>=0.5, next=E.bells[(idx+1)%12];
+  return {bell:b,idx,frac,half,next,until:mod(next.t-t),zodiac:half?next.branch:b.branch,period:b.period};
+}
+const bellName=b=>b.count===6?(b.period==='昼'?'明け六つ':'暮れ六つ'):KAN[b.count]+'ツ';
+const fullName=loc=>(loc.bell.count===6?bellName(loc.bell):loc.bell.period+KAN[loc.bell.count]+'ツ')+(loc.half?'半':'');
+function fmt(t){t=Math.round(mod(t));const h=Math.floor(t/60),m=t%60;return h+':'+String(m).padStart(2,'0')}
+function dur(m){m=Math.round(m);return Math.floor(m/60)+'時間'+String(m%60).padStart(2,'0')+'分'}
+function dateStr(doy){const d=new Date(YEAR,0,doy);return (d.getMonth()+1)+'月'+d.getDate()+'日'}
+function todayDoy(){const n=new Date();return Math.floor((n-new Date(n.getFullYear(),0,1))/86400000)+1}
+function sekkiFor(doy){let b=SEKKI[0],bd=999;for(const s of SEKKI){const d=Math.min(Math.abs(s.d-doy),365-Math.abs(s.d-doy));if(d<bd){bd=d;b=s}}return b}
+
+/* ═══════════ 文字盤 ═══════════ */
+const NS='http://www.w3.org/2000/svg', CX=170, CY=170;
+const pt=(r,a)=>{const A=(a-90)*Math.PI/180;return [CX+r*Math.cos(A),CY+r*Math.sin(A)]};
+const ang=t=>mod(t)/1440*360;
+function ring(r1,r2,a0,a1){
+  let span=((a1-a0)%360+360)%360; if(span<0.01) span=359.99;
+  const L=span>180?1:0, [x1,y1]=pt(r2,a0),[x2,y2]=pt(r2,a0+span),[x3,y3]=pt(r1,a0+span),[x4,y4]=pt(r1,a0);
+  return `M${x1.toFixed(2)} ${y1.toFixed(2)}A${r2} ${r2} 0 ${L} 1 ${x2.toFixed(2)} ${y2.toFixed(2)}L${x3.toFixed(2)} ${y3.toFixed(2)}A${r1} ${r1} 0 ${L} 0 ${x4.toFixed(2)} ${y4.toFixed(2)}Z`;
+}
+function el(n,attrs,txt){const e=document.createElementNS(NS,n);for(const k in attrs)e.setAttribute(k,attrs[k]);if(txt!=null)e.textContent=txt;return e}
+
+const dial=document.getElementById('dial');
+let dyn,hand,centerBig,centerSmall;
+function buildDial(){
+  dial.append(el('circle',{cx:CX,cy:CY,r:166,fill:'#e4dcc6',stroke:'#241f1c','stroke-width':1.5}));
+  dial.append(el('circle',{cx:CX,cy:CY,r:143,fill:'none',stroke:'#241f1c','stroke-width':.8}));
+  for(let h=0;h<24;h++){
+    const [x,y]=pt(154,h*15);
+    dial.append(el('text',{x,y,'text-anchor':'middle','dominant-baseline':'central','font-size':h%6===0?12:9,'font-weight':h%6===0?800:500,fill:'#241f1c','font-family':'inherit'},h));
+    const [x1,y1]=pt(143,h*15),[x2,y2]=pt(h%6===0?138:140.5,h*15);
+    dial.append(el('line',{x1,y1,x2,y2,stroke:'#241f1c','stroke-width':h%6===0?1.5:.8}));
+  }
+  dyn=el('g',{}); dial.append(dyn);
+  dial.append(el('circle',{cx:CX,cy:CY,r:62,fill:'#f7efdc',stroke:'#241f1c','stroke-width':1.2}));
+  dial.append(el('circle',{cx:CX,cy:CY,r:58,fill:'none',stroke:'#b9924a','stroke-width':.8}));
+  centerBig=el('text',{x:CX,y:CY-2,'text-anchor':'middle','dominant-baseline':'central','font-size':26,'font-weight':800,fill:'#241f1c','font-family':'inherit','letter-spacing':1},'―');
+  centerSmall=el('text',{x:CX,y:CY+22,'text-anchor':'middle','dominant-baseline':'central','font-size':11,fill:'#7d7466','font-family':'inherit','letter-spacing':2},'');
+  dial.append(centerBig,centerSmall);
+  hand=el('g',{});
+  hand.append(el('line',{x1:CX,y1:CY-62,x2:CX,y2:CY-150,stroke:'#b8322a','stroke-width':2.5,'stroke-linecap':'round'}));
+  hand.append(el('circle',{cx:CX,cy:CY-152,r:5,fill:'#b8322a',stroke:'#f7efdc','stroke-width':1.5}));
+  dial.append(hand);
+}
+function renderDial(E,t){
+  dyn.innerHTML='';
+  const a0=ang(E.ake), a1=ang(E.kure);
+  dyn.append(el('path',{d:ring(62,143,a1,a0),fill:'#1b2d4f'}));
+  dyn.append(el('path',{d:ring(62,143,a0,a1),fill:'#f3e9c6'}));
+  dyn.append(el('circle',{cx:CX,cy:CY,r:102,fill:'none',stroke:'#241f1c','stroke-width':.7,'stroke-opacity':.55}));
+  E.bells.forEach(b=>{
+    const bd=ang(b.t+b.len/2), [x1,y1]=pt(62,bd),[x2,y2]=pt(143,bd);
+    dyn.append(el('line',{x1,y1,x2,y2,stroke:'#241f1c','stroke-width':.6,'stroke-opacity':.5}));
+    const day=b.period==='昼', fill=day?'#241f1c':'#f3e9c6', stroke=day?'#f3e9c6':'#1b2d4f';
+    const a=ang(b.t), [zx,zy]=pt(123,a), [cx2,cy2]=pt(82,a);
+    dyn.append(el('text',{x:zx,y:zy,'text-anchor':'middle','dominant-baseline':'central','font-size':20,'font-weight':800,fill,stroke,'stroke-width':2.5,'paint-order':'stroke','font-family':'inherit'},b.branch));
+    dyn.append(el('text',{x:cx2,y:cy2,'text-anchor':'middle','dominant-baseline':'central','font-size':13,'font-weight':700,fill,stroke,'stroke-width':2,'paint-order':'stroke','font-family':'inherit'},KAN[b.count]));
+  });
+  const [mx,my]=pt(103,0); dyn.append(el('path',{d:`M${mx+3} ${my-5}a5.5 5.5 0 1 0 0 10a4 4 0 1 1 0-10z`,fill:'#f2c14e'}));
+  const [sx,sy]=pt(103,180); dyn.append(el('circle',{cx:sx,cy:sy,r:4.5,fill:'#b8322a'}));
+  hand.setAttribute('transform',`rotate(${ang(t)} ${CX} ${CY})`);
+  const loc=locate(E,t);
+  centerBig.textContent=fullName(loc).replace(/^(昼|夜)/,'');
+  centerSmall.textContent=loc.period+'・'+loc.zodiac+'の刻';
+}
+
+/* ═══════════ 状態と表示 ═══════════ */
+let doy=todayDoy(), tmin=new Date().getHours()*60+new Date().getMinutes(), live=false, liveTimer=null;
+let shownAke, shownKure, tween=null;
+const $=id=>document.getElementById(id);
+
+let tweenTarget=null;
+function render(){
+  const E=edo(doy);
+  if(shownAke==null){shownAke=E.ake;shownKure=E.kure;drawShown();return}
+  const same=Math.abs(shownAke-E.ake)<0.05&&Math.abs(shownKure-E.kure)<0.05;
+  if(same){tweenTarget=null;drawShown();return}
+  if(tweenTarget&&Math.abs(tweenTarget.ake-E.ake)<0.05&&Math.abs(tweenTarget.kure-E.kure)<0.05){drawShown();return}
+  if(tween)cancelAnimationFrame(tween);
+  tweenTarget={ake:E.ake,kure:E.kure};
+  const from={ake:shownAke,kure:shownKure}, t0=performance.now(), D=1800;
+  const step=now=>{
+    const p=Math.min(1,(now-t0)/D), e=p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;
+    shownAke=from.ake+(E.ake-from.ake)*e; shownKure=from.kure+(E.kure-from.kure)*e;
+    drawShown();
+    if(p<1)tween=requestAnimationFrame(step);else{tween=null;tweenTarget=null}
+  };
+  tween=requestAnimationFrame(step);
+}
+function shownEdo(){
+  const E=edo(doy), V={...E,ake:shownAke,kure:shownKure};
+  V.dayLen=V.kure-V.ake;V.nightLen=1440-V.dayLen;V.kDay=V.dayLen/6;V.kNight=V.nightLen/6;
+  V.bells=[];
+  for(let k=0;k<6;k++)V.bells.push({t:mod(V.ake+k*V.kDay),count:COUNTS[k],period:'昼',branch:DAYB[k],len:V.kDay});
+  for(let k=0;k<6;k++)V.bells.push({t:mod(V.kure+k*V.kNight),count:COUNTS[k],period:'夜',branch:NIGHTB[k],len:V.kNight});
+  return V;
+}
+const ratio=k=>(k/120).toFixed(2)+'倍';
+function drawShown(){
+  const E=edo(doy), V=shownEdo();
+  renderDial(V,tmin);
+  const loc=locate(V,tmin);
+  $('edoName').textContent=fullName(loc);
+  $('edoSub').textContent=loc.zodiac+'の刻 ／ 鐘 '+loc.bell.count+'つ';
+  $('modernTime').textContent=fmt(tmin);
+  $('modernDate').textContent=dateStr(doy)+'ごろ（'+sekkiFor(doy).n+'）';
+  $('fDay').textContent=dur(V.kDay); $('fNight').textContent=dur(V.kNight);
+  $('fDayX').textContent=ratio(V.kDay); $('fNightX').textContent=ratio(V.kNight);
+  $('fRise').textContent=fmt(E.rise); $('fSet').textContent=fmt(E.set);
+  $('fNext').textContent=bellName(loc.next)+'（'+fmt(loc.next.t)+'）まで '+dur(loc.until);
+  document.querySelectorAll('#seasons button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.doy===doy));
+  document.querySelectorAll('#months button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.doy===doy));
+  const tr=$('timeRange');tr.style.setProperty('--d0',(V.ake/1440*100).toFixed(1)+'%');tr.style.setProperty('--d1',(V.kure/1440*100).toFixed(1)+'%');
+  renderStrokes(loc.bell.count);
+}
+
+/* ═══════════ 鐘の音 ═══════════
+   OfflineAudioContextで梵鐘を合成 → WAV → <audio>で再生。
+   HTML5メディア再生扱いになるのでiOSのサイレントスイッチでも鳴る */
+const BELL_SR=22050, bellCache={}; let bellEl=null, silentUrl=null, ringing=false;
+if(navigator.audioSession){try{navigator.audioSession.type='playback'}catch(e){}}
+function strokeTimes(count){const a=[];for(let i=0;i<3;i++)a.push({at:i*.6,vol:.5});for(let i=0;i<count;i++)a.push({at:2.3+i*1.5,vol:1});return a}
+function strikeInto(ctx,dest,when,vol){
+  const base=98;
+  [[1,1,5],[2.03,.55,3.2],[2.42,.38,2.4],[3.76,.22,1.5],[5.1,.11,.9],[.5,.3,5.5]].forEach(([r,a,d])=>{
+    const o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.value=base*r;
+    g.gain.setValueAtTime(0,when);g.gain.linearRampToValueAtTime(a*vol*.35,when+.012);g.gain.exponentialRampToValueAtTime(.0001,when+d);
+    o.connect(g).connect(dest);o.start(when);o.stop(when+d+.05);
+  });
+  const n=ctx.createBufferSource(),buf=ctx.createBuffer(1,Math.floor(ctx.sampleRate*.06),ctx.sampleRate),ch=buf.getChannelData(0);
+  for(let i=0;i<ch.length;i++)ch[i]=(Math.random()*2-1)*Math.exp(-i/(ch.length*.15));
+  const ng=ctx.createGain();ng.gain.value=.25*vol;const f=ctx.createBiquadFilter();f.type='bandpass';f.frequency.value=900;
+  n.buffer=buf;n.connect(f).connect(ng).connect(dest);n.start(when);
+}
+function wav(buf){
+  const n=buf.length,d=buf.getChannelData(0),ab=new ArrayBuffer(44+n*2),v=new DataView(ab);
+  const w=(o,str)=>{for(let i=0;i<str.length;i++)v.setUint8(o+i,str.charCodeAt(i))};
+  w(0,'RIFF');v.setUint32(4,36+n*2,true);w(8,'WAVE');w(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
+  v.setUint32(24,buf.sampleRate,true);v.setUint32(28,buf.sampleRate*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,'data');v.setUint32(40,n*2,true);
+  for(let i=0;i<n;i++){const x=Math.max(-1,Math.min(1,d[i]));v.setInt16(44+i*2,x<0?x*32768:x*32767,true)}
+  return ab;
+}
+async function renderBell(count){
+  const OAC=window.OfflineAudioContext||window.webkitOfflineAudioContext;
+  const len=count?2.3+count*1.5+5.5:.2, ctx=new OAC(1,Math.ceil(len*BELL_SR),BELL_SR);
+  const master=ctx.createGain();master.gain.value=.8;master.connect(ctx.destination);
+  if(count)strokeTimes(count).forEach(st=>strikeInto(ctx,master,st.at,st.vol));
+  const buf=await ctx.startRendering();
+  return URL.createObjectURL(new Blob([wav(buf)],{type:'audio/wav'}));
+}
+async function preRender(){
+  try{silentUrl=await renderBell(0);for(const c of [9,8,7,6,5,4])bellCache[c]=await renderBell(c)}catch(e){console.warn('bell render failed',e)}
+}
+function getBellEl(){
+  if(!bellEl){bellEl=document.createElement('audio');bellEl.setAttribute('playsinline','');bellEl.setAttribute('webkit-playsinline','');bellEl.preload='auto';document.body.appendChild(bellEl)}
+  return bellEl;
+}
+function ensureAudio(){ /* ユーザー操作の中で一度鳴らして再生を解禁 */
+  const el=getBellEl(); if(!silentUrl)return;
+  el.src=silentUrl; const p=el.play(); if(p&&p.catch)p.catch(()=>{});
+}
+function ringBell(count,onStroke,onDone){
+  const el=getBellEl(), url=bellCache[count];
+  if(!url){onDone&&onDone();return}
+  ringing=true; el.src=url; el.currentTime=0;
+  const p=el.play(); if(p&&p.catch)p.catch(()=>{});
+  strokeTimes(count).forEach((st,i)=>setTimeout(()=>onStroke&&onStroke(i),st.at*1000+60));
+  setTimeout(()=>{ringing=false;onDone&&onDone()},(2.3+count*1.5+1.2)*1000);
+}
+preRender();
+function renderStrokes(count,lit=-1){
+  const box=$('strokes');
+  let h='<span>捨て鐘</span>';
+  for(let i=0;i<3;i++)h+=`<i class="sute${lit>=i?' on':''}"></i>`;
+  h+='<b></b>';
+  for(let i=0;i<count;i++)h+=`<i class="${lit>=3+i?'on':''}"></i>`;
+  box.innerHTML=h;
+}
+
+/* ═══════════ 操作 ═══════════ */
+buildDial();
+$('months').innerHTML=MONTH_DOY.map((d,i)=>`<button data-doy="${d}">${KMONTH[i]}月</button>`).join('');
+document.querySelectorAll('#seasons button,#months button').forEach(b=>b.addEventListener('click',()=>{if(live)setLive(false);doy=+b.dataset.doy;render()}));
+$('timeRange').value=tmin;
+$('timeRange').addEventListener('input',e=>{tmin=+e.target.value;render()});
+$('liveBtn').addEventListener('click',()=>setLive(!live));
+function setLive(on){
+  live=on; $('liveBtn').setAttribute('aria-pressed',on); $('timeRange').disabled=on;
+  clearInterval(liveTimer);
+  if(on){ ensureAudio(); let lastIdx=null;
+    const tick=()=>{const n=new Date();doy=todayDoy();tmin=n.getHours()*60+n.getMinutes()+n.getSeconds()/60;$('timeRange').value=Math.floor(tmin);render();
+      const loc=locate(edo(doy),tmin); if(lastIdx!==null&&loc.idx!==lastIdx&&!ringing) doBell(); lastIdx=loc.idx;};
+    tick(); liveTimer=setInterval(tick,1000);
+  }
+}
+function doBell(){
+  if(ringing)return; const c=locate(edo(doy),tmin).bell.count; $('bellBtn').disabled=true;
+  ringBell(c,i=>renderStrokes(c,i),()=>{$('bellBtn').disabled=false;renderStrokes(c)});
+}
+$('bellBtn').addEventListener('click',doBell);
+
+document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id===b.dataset.tab));
+  if(b.dataset.tab==='quiz'&&!Q.started)startQuiz();
+}));
+render();
+
+/* ═══════════ 鐘当て ═══════════ */
+const Q={started:false,round:0,score:0,q:null};
+const KROUND=['一','二','三','四','五'];
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const rnd=n=>Math.floor(Math.random()*n);
+
+function genBellQ(){
+  const sk=SEKKI[rnd(SEKKI.length)], E=edo(sk.d), idx=rnd(12), b=E.bells[idx], correct=Math.round(b.t);
+  const cands=[];
+  SEKKI.forEach(s=>{if(s!==sk)cands.push(Math.round(edo(s.d).bells[idx].t))});
+  cands.push(Math.round(E.bells[(idx+11)%12].t),Math.round(E.bells[(idx+1)%12].t));
+  shuffle(cands); const picked=[correct];
+  for(const c of cands){if(picked.every(p=>circ(p,c)>=20))picked.push(c);if(picked.length===4)break}
+  while(picked.length<4){const c=mod(correct+(Math.random()<.5?-1:1)*(40+rnd(80)));if(picked.every(p=>circ(p,c)>=20))picked.push(c)}
+  const kc=b.count===6?(b.period==='昼'?'六つ（明け六つ）':'六つ（暮れ六つ）'):KAN[b.count]+'つ';
+  return {type:'bell',sk,E,bell:b,period:b.period,
+    text:`鐘が『捨て鐘三つ、そのあと <em>${kc}</em>』鳴った。<br>今、現代の時計では？`,
+    choices:shuffle(picked).map(fmt),answer:fmt(correct),
+    why:`${sk.n}のころ、${b.period}の一刻は${dur(b.len)}。明け六つ ${fmt(E.ake)}、暮れ六つ ${fmt(E.kure)} から数えると ${bellName(b)} は ${fmt(correct)}。`};
+}
+function genNameQ(){
+  const sk=SEKKI[rnd(SEKKI.length)], E=edo(sk.d), t=rnd(1440), loc=locate(E,t), correct=fullName(loc);
+  const names=[];
+  for(let d=1;d<=3;d++){for(const s of [1,-1]){const i=(loc.idx+12+s*d)%12;const bb=E.bells[i];
+    for(const h of [false,true])names.push((bb.count===6?bellName(bb):bb.period+KAN[bb.count]+'ツ')+(h?'半':''))}}
+  names.push((loc.bell.count===6?bellName(loc.bell):loc.bell.period+KAN[loc.bell.count]+'ツ')+(loc.half?'':'半'));
+  const pool=shuffle([...new Set(names)].filter(n=>n!==correct)).slice(0,3);
+  return {type:'name',sk,E,period:loc.period,
+    text:`現代の時計は <em>${fmt(t)}</em>。<br>江戸ではなんて言う？`,
+    choices:shuffle([correct,...pool]),answer:correct,
+    why:`${sk.n}のころは明け六つ ${fmt(E.ake)}、暮れ六つ ${fmt(E.kure)}。${loc.period}の一刻は${dur(loc.bell.len)}なので、${bellName(loc.bell)}の鐘（${fmt(loc.bell.t)}）から${loc.half?'半刻以上':'半刻未満'}過ぎた${fullName(loc)}。`};
+}
+function startQuiz(){Q.started=true;Q.round=0;Q.score=0;nextQ()}
+function nextQ(){
+  if(Q.round>=5)return showResult();
+  Q.q=Q.round%2===0?genBellQ():genNameQ();
+  const q=Q.q, body=$('quizBody');
+  body.innerHTML=`
+    <div class="progress"><span>第${KROUND[Q.round]}問 ／ 全五問</span><span>正解 ${Q.score}</span></div>
+    <div class="qcard ${q.period==='夜'?'night':''}">
+      <div class="sekki">${q.sk.n}のころ・${q.period}</div>
+      <div class="qtext">${q.text}</div>
+      ${q.type==='bell'?'<button class="listen" id="listen">鐘を聞く</button>':''}
+    </div>
+    <div class="choices" id="choices">${q.choices.map(c=>`<button data-c="${c}">${c}</button>`).join('')}</div>
+    <div class="feedback" id="feedback"></div>`;
+  if(q.type==='bell')$('listen').addEventListener('click',e=>{if(ringing)return;e.target.disabled=true;ringBell(q.bell.count,null,()=>{e.target.disabled=false})});
+  document.querySelectorAll('#choices button').forEach(b=>b.addEventListener('click',()=>answer(b)));
+}
+function answer(btn){
+  const q=Q.q, ok=btn.dataset.c===q.answer;
+  if(ok)Q.score++;
+  document.querySelectorAll('#choices button').forEach(b=>{b.disabled=true;if(b.dataset.c===q.answer)b.classList.add('ok');else b.classList.add('ng')});
+  const fb=$('feedback'); fb.classList.add('show');
+  fb.innerHTML=`<span class="verdict">${ok?'正解':'外れ'}</span>${q.why}<button class="next" id="next">${Q.round===4?'結果を見る':'次の問へ'}</button>`;
+  $('next').addEventListener('click',()=>{Q.round++;nextQ()});
+  $('next').focus({preventScroll:true});
+}
+function showResult(){
+  const s=Q.score, title=s===5?'時の鐘の番人':s===4?'粋な江戸っ子':s===3?'長屋の常連':s===2?'上京したての田舎侍':'時そばに騙される人';
+  $('quizBody').innerHTML=`
+    <div class="result">
+      <div class="score">${s}<small>五問中</small></div>
+      <div class="title">${title}</div>
+      <p>${s>=4?'刻の伸び縮み、もう体に入ってる。':s>=2?'季節で一刻の長さが変わるのを思い出せば、もっと取れる。':'まず「体験」で昼と夜の一刻の差を見てから、もう一度。'}</p>
+      <button class="next" id="again">もう一度</button>
+    </div>`;
+  $('again').addEventListener('click',startQuiz);
+}
+</script>
+</body>
+</html>
